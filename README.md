@@ -1,0 +1,1 @@
+Refer to comments in com.mpos.lottery.te.merchant.dao.JpaDeviceDaoIntegrationTest

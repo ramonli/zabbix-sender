@@ -1,0 +1,96 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+/**
+ * Gradle includes 2 phases: configuration and execution, refer to 
+ * http://stackoverflow.com/questions/11558824/gradle-tar-task-not-executed.
+ * 
+ * - CONFIGURATION PHASE
+ * In configuration phase, all codes except doFirst() and doLast() will be executed from top to bottom of the script. 
+ * The 'dependsOn' doesn't make any sense in configration phase, for example, the 'jar' and 'svnrev' tasks, if we put
+ * 'svnrev' after 'jar', then variable 'svnrev.lastRev' can't be parsed at 'jar' task, as it completely hasn't been
+ * initilized at all.
+ * 
+ * - EXECUTION PHASE
+ * In execution phase, the dependency mechanism of task will work. Be reminded that only doFirst() and doLast() will be 
+ * executed at execution phase, and gradle will finished configuration of whose script first to initialize and determine
+ * what tasks should be executed and what is the execution order.
+ */ 
+
+logger.quiet(">> Start building of $_name.$version.")
+/**
+ * SHIT, here you can't give a statement like 'compileJava.options.encoding = $_sourcecode_encoding', if do so, 
+ * "Could not find property '$_sourcecode_encoding'" will be thrown out. '$_encoding' can't only be used in String?
+ */
+compileJava.options.encoding = _sourcecode_encoding
+// Define a temporary variable.
+//_tmp="define a temporary variable"
+//logger.quiet(">> Define a temporary variable: _tmp: $_tmp")
+
+repositories {
+    mavenCentral()
+}
+
+// In Gradle dependencies are grouped into configurations. 
+dependencies {
+    compile 'commons-logging:commons-logging:1.2'
+    compile 'log4j:log4j:1.2.17'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+// Refer to http://www.gradle.org/docs/current/dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html
+eclipse {
+    classpath {
+        defaultOutputDir = file('build/eclipse')
+    }
+}
+
+// Jar with typesafe-config dependencies, refer to 
+//      - http://stackoverflow.com/questions/4871656/using-gradle-to-build-a-jar-with-dependencies
+//      - http://stackoverflow.com/questions/23738676/how-to-specify-main-class-when-using-fatjar-plugin-in-gradle-build
+task fatJar(type: Jar) {
+    baseName = project.name + '-all'
+
+    from files(sourceSets.main.output.classesDir)
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude "META-INF/*.SF"
+    }
+    //with jar    
+    // manifest is  project property added by 'java' plugin at gradlev2.1
+    manifest {
+        attributes(
+            'Implementation-Title':"$_name", 
+            // Variable will be parsed only in double quote marked string.
+            'Implementation-Version':"${version}", 
+            'Implementation-Vendor':"$_company",
+            'Created-By' : _team,
+            'Build-Time' : new Date(),
+        )
+    }
+}
+
+task dist(type: Zip) {
+    description = "Build a distribution package."
+    archiveName = "${_name}_v${version}.zip"
+
+    // if use include, gradle will inform 'Skipping task ':zip' as it has no source files'...why?
+    // include 'config'    
+
+    into(_name) {
+        into('config') {from 'config'}
+        //into('lib') {
+        //    from configurations.runtime.findAll({File file -> !file.path.contains('DEV')})
+        //}
+        from(jar.destinationDir) {
+            include '*-all*'
+        }
+        from('bin') {
+            include 'startup.*'
+        }
+    }
+
+    doLast {
+        //print 'source of zip:' + project['zip'].source.each({println it})
+    }
+}
+
