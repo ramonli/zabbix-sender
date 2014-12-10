@@ -75,7 +75,7 @@ public class ZabbixSender {
         try {
             socket = new Socket(zabbixHost, zabbixPort);
             BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
-            String message = "[" + moduleName + "]" + value;
+            String message = "[WARN][" + moduleName + "]" + value;
             String json = this.buildJSonString(host, itemKey, message);
             this.writeMessage(bos, json.getBytes());
             bos.close();
