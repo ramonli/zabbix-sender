@@ -7,7 +7,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,18 +20,13 @@ public class ZabbixSender {
     private String zabbixHost;
     private int zabbixPort;
 
-    public static void main(String[] args) throws IOException {
-        ZabbixSender sender = new ZabbixSender("192.168.2.158", 10051);
-        sender.asyncSend("logdog", "long_transaction", "[LONG]The UUID:" + UUID.randomUUID());
-    }
-
     public ZabbixSender(String zabbixHost, int zabbixPort) {
         this.zabbixHost = zabbixHost;
         this.zabbixPort = zabbixPort;
     }
 
     /**
-     * Send value to supplied item in asynchronized mode. The sending processed in a independent thread.
+     * Send value to supplied item in asynchronized mode.
      * 
      * @param host
      *            The host which defined on Zabbix server.
