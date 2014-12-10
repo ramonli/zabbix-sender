@@ -9,6 +9,6 @@ public class ZabbixSenderMain {
 
     public static void main(String[] args) throws IOException {
         ZabbixSender sender = new ZabbixSender("192.168.2.158", 10051);
-        sender.asyncSend("logdog", "long_transaction", "[LONG]The UUID:" + UUID.randomUUID());
+        sender.asyncSend("logdog", "long_transaction", "TE", "[LONG]The UUID:" + UUID.randomUUID());
     }
 }

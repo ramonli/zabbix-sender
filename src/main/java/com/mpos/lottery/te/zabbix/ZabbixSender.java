@@ -32,19 +32,21 @@ public class ZabbixSender {
      *            The host which defined on Zabbix server.
      * @param itemKey
      *            The key of item.
+     * @param moduleName
+     *            The name of module which issues the message.
      * @param value
      *            The value of item.
      * @throws IOException
      *             if fail to send message over network.
      */
-    public void asyncSend(final String host, final String itemKey, final String value) {
+    public void asyncSend(final String host, final String itemKey, final String moduleName, final String value) {
         ExecutorService exeService = Executors.newFixedThreadPool(1);
         exeService.execute(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    send(host, itemKey, value);
+                    send(host, itemKey, moduleName, value);
                 } catch (IOException e) {
                     // simply ignore the error message.
                     logger.warn(e.getMessage());
@@ -61,21 +63,32 @@ public class ZabbixSender {
      *            The host which defined on Zabbix server.
      * @param itemKey
      *            The key of item.
+     * @param moduleName
+     *            The name of module which issue the monitoring message.
      * @param value
      *            The value of item.
      * @throws IOException
      *             if fail to send message over network.
      */
-    private void send(String host, String itemKey, String value) throws IOException {
-        Socket socket = new Socket(zabbixHost, zabbixPort);
-        BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
-        String json = this.buildJSonString(host, itemKey, value);
-        this.writeMessage(bos, json.getBytes());
-        bos.close();
+    private void send(String host, String itemKey, String moduleName, String value) throws IOException {
+        Socket socket = null;
+        try {
+            socket = new Socket(zabbixHost, zabbixPort);
+            BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+            String message = "[" + moduleName + "]" + value;
+            String json = this.buildJSonString(host, itemKey, message);
+            this.writeMessage(bos, json.getBytes());
+            bos.close();
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Send value successfully");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Send value successfully");
+            }
+        } finally {
+            if (socket != null) {
+                socket.close();
+            }
         }
+
     }
 
     private String buildJSonString(String host, String item, String value) {
