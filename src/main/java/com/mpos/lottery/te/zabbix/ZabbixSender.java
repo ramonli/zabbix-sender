@@ -81,7 +81,7 @@ public class ZabbixSender {
             bos.close();
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Send value successfully");
+                logger.debug("Successfully send to zabbix[" + this.zabbixHost + ":" + this.zabbixPort + "] " + json);
             }
         } finally {
             if (socket != null) {
@@ -92,12 +92,8 @@ public class ZabbixSender {
     }
 
     private String buildJSonString(String host, String item, String value) {
-        String json = "{" + "\"request\":\"sender data\",\n" + "\"data\":[\n" + "{\n" + "\"host\":\"" + host + "\",\n"
+        return "{" + "\"request\":\"sender data\",\n" + "\"data\":[\n" + "{\n" + "\"host\":\"" + host + "\",\n"
                         + "\"key\":\"" + item + "\",\n" + "\"value\":\"" + value.replace("\\", "\\\\") + "\"}]}\n";
-        if (logger.isDebugEnabled()) {
-            logger.debug("[" + this.zabbixHost + ":" + this.zabbixPort + "] " + json);
-        }
-        return json;
     }
 
     private void writeMessage(OutputStream out, byte[] data) throws IOException {
