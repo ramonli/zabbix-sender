@@ -49,7 +49,8 @@ public class ZabbixSender {
                     send(host, itemKey, moduleName, value);
                 } catch (IOException e) {
                     // simply ignore the error message.
-                    logger.warn(e.getMessage());
+                    logger.warn("[Zabbix-" + ZabbixSender.this.zabbixHost + ":" + ZabbixSender.this.zabbixPort + "]"
+                                    + e.getMessage());
                 }
             }
         });
